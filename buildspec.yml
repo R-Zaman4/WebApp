@@ -1,14 +1,28 @@
 version: 0.2
-
-env:
-  variables:
-    PROJECT: MyWebApp
-    DOTNET_FRAMEWORK: 4.8
-phases:
+    
+phases:   
+  install:
+    runtime-versions:
+      dotnet: latest
+      
+  pre_build:
+    commands:
+      - echo Restore started on `date`
+      - dotnet restore MyWebApp.csproj
+      
   build:
     commands:
-      - msbuild $env:PROJECT.csproj /p:TargetFrameworkVersion=v$env:DOTNET_FRAMEWORK /p:Configuration=Release /p:DeployIisAppPath="Default Web Site" /p:PackageAsSingleFile=false /p:OutDir=D:\Riyad\Job\DNExample\MyWebApp\ /t:Package
+      - echo Build started on `date`
+      - dotnet build MyWebApp.csproj
+      
+  post_build:
+    commands:
+      - echo Publish started on `date`
+      # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/dotnet-linux-platform-bundle-app.html
+      - dotnet publish -c Release -r linux-x64 --self-contained false MyWebApp.csproj
+      
 artifacts:
   files:
     - '**/*'
-  base-directory: 'D:\Riyad\Job\DNExample\MyWebApp\${env:PROJECT}_Package\Archive\'
+  base-directory: ./bin/Release/netcoreapp6.0/linux-x64/publish/
+  discard-paths: no
